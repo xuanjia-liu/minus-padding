@@ -1,0 +1,970 @@
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 11px;
+    margin: 0;
+    padding: 12px;
+    background: var(--figma-color-bg);
+    color: var(--figma-color-text);
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  h2 {
+    margin: 0 0 12px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--figma-color-text);
+    text-align: center;
+    opacity: 0.9;
+  }
+
+
+  /* No Selection State */
+  #no-selection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    width: 100%;
+  }
+
+  .no-selection-card {
+    background: var(--figma-color-bg-secondary);
+    border-radius: 12px;
+    padding: 24px 16px 16px 16px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid var(--figma-color-border);
+  }
+
+  .no-selection-icon-bg {
+    background: var(--figma-color-bg-tertiary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .no-selection-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--figma-color-text);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .no-selection-sub {
+    font-size: 10px;
+    color: var(--figma-color-text-secondary);
+    margin: 0;
+    line-height: 1.6;
+    text-align: left;
+    background: var(--figma-color-bg);
+    border-radius: 8px;
+    padding: 12px;
+    width: 100%;
+  }
+
+  /* Mode Selector */
+  #mode-selector {
+    background: var(--figma-color-bg-secondary);
+    border-radius: 10px;
+    padding: 2px;
+    display: flex;
+    gap: 2px;
+  }
+
+  .mode-label {
+    flex: 1;
+    padding: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    color: var(--figma-color-text-secondary);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .mode-label:hover {
+    color: var(--figma-color-text);
+    background: var(--figma-color-bg-hover);
+  }
+
+  .mode-label:has(input:checked) {
+    background: var(--figma-color-bg-tertiary);
+    color: var(--figma-color-text);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .mode-label input {
+    display: none;
+  }
+
+  /* Main Container */
+  #controls {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 8px;
+  }
+
+  .visualization-container {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .center-box {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .frame-visual {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background: var(--figma-color-bg-secondary);
+    border: 1px solid var(--figma-color-border);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .padding-area {
+    position: absolute;
+    transition: all 0.2s ease;
+    opacity: 0;
+  }
+
+  .padding-area.active {
+    opacity: 1;
+  }
+
+  .top-area {
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .right-area {
+    top: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .bottom-area {
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .left-area {
+    top: 0;
+    left: 0;
+    bottom: 0;
+  }
+
+  .padding-area.positive {
+    background: var(--figma-color-bg-brand-tertiary);
+  }
+
+  .padding-area.negative {
+    background: var(--figma-color-bg-danger-tertiary);
+  }
+
+
+  .value-display {
+    position: absolute;
+    background: var(--figma-color-bg-tertiary);
+    color: var(--figma-color-text);
+    font-size: 10px;
+    padding: 4px 6px;
+    border-radius: 8px;
+    z-index: 10;
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  .value-display.top {
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .value-display.right {
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .value-display.bottom {
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .value-display.left {
+    left: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .center-input-container {
+    position: absolute;
+    z-index: 20;
+  }
+
+  .center-input {
+    width: 40px;
+    height: 24px;
+    background: var(--figma-color-bg);
+    border: 1px solid var(--figma-color-border);
+    border-radius: 4px;
+    color: var(--figma-color-text);
+    text-align: center;
+    font-size: 11px;
+    outline: none;
+  }
+
+  .center-input:focus {
+    border-color: var(--figma-color-border-brand);
+    background: var(--figma-color-bg-secondary);
+  }
+
+  #reset-all {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    z-index: 25;
+    background: transparent;
+    border: none;
+    padding: 4px;
+    border-radius: 4px;
+    color: var(--figma-color-icon-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #reset-all:hover {
+    color: var(--figma-color-icon);
+    background: var(--figma-color-bg-hover);
+  }
+
+  /* Input Section */
+  .input-section {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .padding-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--figma-color-bg-secondary);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 0 4px;
+    transition: all 0.2s;
+  }
+
+  .input-wrapper:hover {
+    background: var(--figma-color-bg-hover);
+  }
+
+  .input-wrapper:focus-within {
+    border-color: var(--figma-color-border-brand);
+    background: var(--figma-color-bg);
+  }
+
+  .input-wrapper:focus-within .value-input {
+    color: var(--figma-color-text);
+  }
+
+  .input-icon {
+    display: flex;
+    align-items: center;
+    color: var(--figma-color-icon-secondary);
+    margin-right: 4px;
+    pointer-events: none;
+  }
+
+  .value-input {
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    border: none;
+    color: var(--figma-color-text);
+    font-size: 11px;
+    padding: 0;
+    outline: none;
+    font-family: Inter, sans-serif;
+  }
+
+  .toggle-btn {
+    position: fixed;
+    bottom: 4px;
+    right: 4px;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: var(--figma-color-icon-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .toggle-btn:hover {
+    color: var(--figma-color-icon);
+    background: var(--figma-color-bg-secondary);
+  }
+
+  .toggle-btn.active {
+    color: var(--figma-color-icon-brand);
+  }
+
+  .padding-values {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    pointer-events: none;
+  }
+
+  .global-keyboard-hint {
+    text-align: center;
+    font-size: 9px;
+    color: var(--figma-color-text-tertiary);
+    margin-top: auto;
+  }
+</style>
+</style>
+
+<body>
+  <div id="no-selection" style="display: none;">
+    <div class="no-selection-card">
+      <div class="no-selection-icon-bg">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--figma-color-icon-brand)">
+          <path d="M3 3h18v18H3V3zm2 2v14h14V5H5z" />
+          <path d="M7 7h10v10H7V7zm2 2v6h6V9H9z" />
+        </svg>
+      </div>
+      <p id="selection-message" class="no-selection-title">Select any element to start adjusting padding/spacing</p>
+      <p id="selection-message-sub" class="no-selection-sub">
+        - 🔲 Frames & Components<br>
+        - 📦 Sections & Groups <br>
+        - 🔺 Basic Shapes (Rectangle, Ellipse, Polygon, Star, Vector)<br>
+        - 📝 Text Elements<br>
+        - 🧩 Component Sets & Instances
+      </p>
+    </div>
+  </div>
+
+  <div id="controls" style="display: none;">
+    <div id="mode-selector" style="display: none;">
+      <label class="mode-label"><input type="radio" name="mode" value="expand" checked> Expand</label>
+      <label class="mode-label"><input type="radio" name="mode" value="stretch"> Stretch</label>
+    </div>
+
+    <!-- Visualization at the top -->
+    <div class="visualization-container">
+      <div class="center-box">
+        <div class="frame-visual">
+          <div class="padding-area top-area" id="top-area"></div>
+          <div class="padding-area right-area" id="right-area"></div>
+          <div class="padding-area bottom-area" id="bottom-area"></div>
+          <div class="padding-area left-area" id="left-area"></div>
+
+          <div class="center-input-container">
+            <input type="text" id="all-padding-input" placeholder="All" class="center-input value-input"
+              title="Change all values at once">
+          </div>
+          <button id="reset-all" class="reset-btn" title="Reset all values">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="padding-values">
+          <span class="value-display top" id="top-value">0</span>
+          <span class="value-display right" id="right-value">0</span>
+          <span class="value-display bottom" id="bottom-value">0</span>
+          <span class="value-display left" id="left-value">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inputs at the bottom -->
+    <div class="input-section">
+      <div id="individual-padding" class="padding-grid">
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3.5" y="3.5" width="9" height="9" rx="1" stroke="currentColor" stroke-opacity="0.2" />
+              <path d="M3 3.5V12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </div>
+          <input type="text" id="padding-left-input" value="0" class="value-input">
+        </div>
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3.5" y="3.5" width="9" height="9" rx="1" stroke="currentColor" stroke-opacity="0.2" />
+              <path d="M3.5 3H12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </div>
+          <input type="text" id="padding-top-input" value="0" class="value-input">
+        </div>
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3.5" y="3.5" width="9" height="9" rx="1" stroke="currentColor" stroke-opacity="0.2" />
+              <path d="M13 3.5V12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </div>
+          <input type="text" id="padding-right-input" value="0" class="value-input">
+        </div>
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3.5" y="3.5" width="9" height="9" rx="1" stroke="currentColor" stroke-opacity="0.2" />
+              <path d="M3.5 13H12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </div>
+          <input type="text" id="padding-bottom-input" value="0" class="value-input">
+        </div>
+      </div>
+
+      <div id="grouped-padding" class="padding-grid" style="display: none;">
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3.5" y="3.5" width="9" height="9" rx="1" stroke="currentColor" stroke-opacity="0.2" />
+              <path d="M3 3.5V12.5M13 3.5V12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </div>
+          <input type="text" id="padding-horizontal-input" value="0" class="value-input" placeholder="H">
+        </div>
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3.5" y="3.5" width="9" height="9" rx="1" stroke="currentColor" stroke-opacity="0.2" />
+              <path d="M3.5 3H12.5M3.5 13H12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </div>
+          <input type="text" id="padding-vertical-input" value="0" class="value-input" placeholder="V">
+        </div>
+      </div>
+      <div id="all-padding" class="padding-grid" style="display: none;">
+        <div class="input-wrapper" style="grid-column: span 2;">
+          <div class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3" y="3" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </div>
+          <input type="text" id="padding-all-bottom-input" value="0" class="value-input" placeholder="All">
+        </div>
+      </div>
+    </div>
+
+    <button id="toggle-input-mode" class="toggle-btn" title="Toggle Padding Mode">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" id="toggle-icon-individual">
+        <rect x="4" y="4" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.2" />
+        <path d="M2 4V12M14 4V12M4 2H12M4 14H12" stroke="currentColor" stroke-width="1.2" stroke-opacity="0.3" />
+      </svg>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" id="toggle-icon-grouped" style="display: none;">
+        <rect x="4" y="4" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.2" stroke-opacity="0.3" />
+        <path d="M2 4V12M14 4V12M4 2H12M4 14H12" stroke="currentColor" stroke-width="1.2" />
+      </svg>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" id="toggle-icon-all" style="display: none;">
+        <rect x="3" y="3" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+      </svg>
+    </button>
+    <div id="keyboard-shortcuts-hint" class="global-keyboard-hint">
+      Use ↑/↓ to adjust by 1px, + Shift by 10px
+    </div>
+  </div>
+</body>
+
+<script>
+  let isUpdating = false;
+  let inputMode = 'individual'; // 'individual' or 'grouped'
+
+  function updatePadding(side, value) {
+    if (isUpdating) return;
+    const numericValue = parseInt(value, 10);
+    const mode = document.querySelector('input[name="mode"]:checked')?.value || 'expand';
+
+    parent.postMessage({
+      pluginMessage: {
+        type: 'update-padding',
+        side: side,
+        value: isNaN(numericValue) ? 0 : numericValue,
+        mode: mode,
+        autoDetach: true
+      }
+    }, '*');
+  }
+
+  function getValueClass(value) {
+    if (value < 0) return 'negative-value';
+    if (value > 0) return 'positive-value';
+    return 'neutral-value';
+  }
+
+  function getColorClass(value) {
+    if (value < 0) return 'negative';
+    if (value > 0) return 'positive';
+    return 'neutral';
+  }
+
+  function updateVisualPadding(side, value) {
+    const numericValue = parseInt(value, 10) || 0;
+    const area = document.getElementById(`${side}-area`);
+    if (!area) return;
+
+    area.classList.remove('negative', 'positive', 'neutral');
+
+    if (numericValue !== 0) {
+      area.classList.add('active');
+      area.classList.add(getColorClass(numericValue));
+
+      const size = Math.min(Math.abs(numericValue) / (numericValue > 0 ? 2 : 3), numericValue > 0 ? 15 : 12);
+      if (side === 'top' || side === 'bottom') {
+        area.style.height = `${size}px`;
+        area.style.width = '';
+      } else {
+        area.style.width = `${size}px`;
+        area.style.height = '';
+      }
+    } else {
+      area.classList.remove('active');
+      area.style.height = '';
+      area.style.width = '';
+    }
+  }
+
+  function updateFrameSize() {
+    const frameVisual = document.querySelector('.frame-visual');
+    const paddingValues = document.querySelector('.padding-values');
+    const baseSize = 100;
+
+    const topValue = parseInt(document.getElementById('padding-top-input').value, 10) || 0;
+    const rightValue = parseInt(document.getElementById('padding-right-input').value, 10) || 0;
+    const bottomValue = parseInt(document.getElementById('padding-bottom-input').value, 10) || 0;
+    const leftValue = parseInt(document.getElementById('padding-left-input').value, 10) || 0;
+
+    const topExpansion = Math.max(0, Math.min(topValue / 2, 15));
+    const rightExpansion = Math.max(0, Math.min(rightValue / 2, 15));
+    const bottomExpansion = Math.max(0, Math.min(bottomValue / 2, 15));
+    const leftExpansion = Math.max(0, Math.min(leftValue / 2, 15));
+
+    const newWidth = baseSize + leftExpansion + rightExpansion;
+    const newHeight = baseSize + topExpansion + bottomExpansion;
+
+    if (topExpansion === 0 && rightExpansion === 0 && bottomExpansion === 0 && leftExpansion === 0) {
+      frameVisual.style.width = '';
+      frameVisual.style.height = '';
+      paddingValues.style.width = '100px';
+      paddingValues.style.height = '100px';
+    } else {
+      frameVisual.style.width = `${newWidth}px`;
+      frameVisual.style.height = `${newHeight}px`;
+      paddingValues.style.width = `${newWidth}px`;
+      paddingValues.style.height = `${newHeight}px`;
+    }
+  }
+
+  function syncValues(side, value) {
+    const input = document.getElementById(`padding-${side}-input`);
+    const display = document.getElementById(`${side}-value`);
+    const numericValue = parseInt(value, 10) || 0;
+
+    if (input && input.value !== value.toString()) {
+      input.value = value;
+    }
+    if (display) {
+      display.textContent = value;
+      display.classList.remove('negative-value', 'positive-value', 'neutral-value');
+      display.classList.add(getValueClass(numericValue));
+    }
+
+    updateVisualPadding(side, numericValue);
+    updateFrameSize();
+    updateGroupedInputs();
+    updateAllBottomInput();
+    updateCenterInput();
+  }
+
+  function updateAllBottomInput() {
+    const allInput = document.getElementById('padding-all-bottom-input');
+    const sides = ['top', 'right', 'bottom', 'left'];
+    const inputs = sides.map(side => document.getElementById(`padding-${side}-input`));
+    const values = inputs.map(input => parseInt(input.value, 10) || 0);
+    const rawValues = inputs.map(input => input.value);
+
+    if (rawValues.every(val => val === rawValues[0]) && rawValues[0] !== '') {
+      allInput.value = rawValues[0];
+      allInput.placeholder = 'All';
+    } else if (values.every(val => val === values[0])) {
+      allInput.value = values[0].toString();
+      allInput.placeholder = 'All';
+    } else {
+      allInput.value = '';
+      allInput.placeholder = 'Mixed';
+    }
+  }
+
+  function updateGroupedInputs() {
+    const sides = ['top', 'right', 'bottom', 'left'];
+    const inputs = {};
+    sides.forEach(side => {
+      inputs[side] = document.getElementById(`padding-${side}-input`);
+    });
+
+    const hInput = document.getElementById('padding-horizontal-input');
+    const vInput = document.getElementById('padding-vertical-input');
+
+    // Horizontal
+    if (inputs.left.value === inputs.right.value && inputs.left.value !== '') {
+      hInput.value = inputs.left.value;
+      hInput.placeholder = 'H';
+    } else {
+      const leftVal = parseInt(inputs.left.value, 10) || 0;
+      const rightVal = parseInt(inputs.right.value, 10) || 0;
+      if (leftVal === rightVal) {
+        hInput.value = leftVal;
+        hInput.placeholder = 'H';
+      } else {
+        hInput.value = '';
+        hInput.placeholder = 'Mixed';
+      }
+    }
+
+    // Vertical
+    if (inputs.top.value === inputs.bottom.value && inputs.top.value !== '') {
+      vInput.value = inputs.top.value;
+      vInput.placeholder = 'V';
+    } else {
+      const topVal = parseInt(inputs.top.value, 10) || 0;
+      const bottomVal = parseInt(inputs.bottom.value, 10) || 0;
+      if (topVal === bottomVal) {
+        vInput.value = topVal;
+        vInput.placeholder = 'V';
+      } else {
+        vInput.value = '';
+        vInput.placeholder = 'Mixed';
+      }
+    }
+  }
+
+  function updateCenterInput() {
+    const centerInput = document.getElementById('all-padding-input');
+    const sides = ['top', 'right', 'bottom', 'left'];
+    const inputs = sides.map(side => document.getElementById(`padding-${side}-input`));
+    const values = inputs.map(input => parseInt(input.value, 10) || 0);
+    const rawValues = inputs.map(input => input.value);
+
+    if (rawValues.every(val => val === rawValues[0]) && rawValues[0] !== '') {
+      centerInput.value = rawValues[0];
+    } else if (values.every(val => val === values[0])) {
+      centerInput.value = values[0].toString();
+    } else {
+      centerInput.value = '';
+      centerInput.placeholder = 'Mixed';
+    }
+  }
+
+  function setAllPadding(value) {
+    const numericValue = parseInt(value, 10);
+    if (!isNaN(numericValue)) {
+      ['top', 'right', 'bottom', 'left'].forEach(side => {
+        syncValues(side, numericValue);
+        updatePadding(side, numericValue);
+      });
+      updateCenterInput();
+    }
+  }
+
+  function fineTuneValue(side, delta) {
+    const input = document.getElementById(`padding-${side}-input`);
+    if (!input) return;
+    const currentValue = parseInt(input.value, 10) || 0;
+    const newValue = Math.max(-999, Math.min(999, currentValue + delta));
+    syncValues(side, newValue);
+    updatePadding(side, newValue);
+    updateCenterInput();
+  }
+
+  function fineTuneGrouped(group, delta) {
+    if (group === 'horizontal') {
+      fineTuneValue('left', delta);
+      fineTuneValue('right', delta);
+    } else if (group === 'vertical') {
+      fineTuneValue('top', delta);
+      fineTuneValue('bottom', delta);
+    }
+  }
+
+  function fineTuneAllValues(delta) {
+    const activeEl = document.activeElement;
+    let currentValue = 0;
+    if (activeEl && (activeEl.id === 'all-padding-input' || activeEl.id === 'padding-all-bottom-input')) {
+      currentValue = parseInt(activeEl.value, 10) || 0;
+    } else {
+      const centerInput = document.getElementById('all-padding-input');
+      currentValue = parseInt(centerInput.value, 10) || 0;
+    }
+    const newValue = Math.max(-999, Math.min(999, currentValue + delta));
+    setAllPadding(newValue);
+  }
+
+  function addKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      const activeElement = document.activeElement;
+      if (!activeElement || !activeElement.classList.contains('value-input')) return;
+
+      const delta = e.shiftKey ? 10 : 1;
+      const isUp = e.key === 'ArrowUp';
+      const isDown = e.key === 'ArrowDown';
+
+      if (!isUp && !isDown) return;
+      e.preventDefault();
+      const change = isUp ? delta : -delta;
+
+      if (activeElement.id === 'all-padding-input' || activeElement.id === 'padding-all-bottom-input') {
+        fineTuneAllValues(change);
+      } else if (activeElement.id.startsWith('padding-horizontal')) {
+        fineTuneGrouped('horizontal', change);
+      } else if (activeElement.id.startsWith('padding-vertical')) {
+        fineTuneGrouped('vertical', change);
+      } else {
+        const side = activeElement.id.replace('padding-', '').replace('-input', '');
+        fineTuneValue(side, change);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.classList.contains('value-input')) {
+          activeElement.blur();
+        }
+      }
+    });
+  }
+
+  // Setup input listeners
+  ['top', 'right', 'bottom', 'left'].forEach(side => {
+    const input = document.getElementById(`padding-${side}-input`);
+    input.addEventListener('input', (e) => {
+      syncValues(side, e.target.value);
+      updateCenterInput();
+    });
+    input.addEventListener('change', (e) => {
+      updatePadding(side, e.target.value);
+    });
+  });
+
+  const hInput = document.getElementById('padding-horizontal-input');
+  hInput.addEventListener('input', (e) => {
+    const val = e.target.value;
+    if (val === '-' || (val !== '' && !isNaN(val))) {
+      syncValues('left', val);
+      syncValues('right', val);
+      updateCenterInput();
+    }
+  });
+  hInput.addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (val !== '' && !isNaN(val)) {
+      updatePadding('left', val);
+      updatePadding('right', val);
+    }
+  });
+
+  const vInput = document.getElementById('padding-vertical-input');
+  vInput.addEventListener('input', (e) => {
+    const val = e.target.value;
+    if (val === '-' || (val !== '' && !isNaN(val))) {
+      syncValues('top', val);
+      syncValues('bottom', val);
+      updateCenterInput();
+    }
+  });
+  vInput.addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (val !== '' && !isNaN(val)) {
+      updatePadding('top', val);
+      updatePadding('bottom', val);
+    }
+  });
+
+  const centerInput = document.getElementById('all-padding-input');
+  centerInput.addEventListener('input', (e) => {
+    const val = e.target.value;
+    if (val === '-' || (val !== '' && !isNaN(val))) {
+      ['top', 'right', 'bottom', 'left'].forEach(side => syncValues(side, val));
+    }
+  });
+  centerInput.addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (val !== '' && !isNaN(val)) setAllPadding(val);
+  });
+
+  // Toggle Mode Logic
+  const toggleBtn = document.getElementById('toggle-input-mode');
+  function setInputMode(mode) {
+    inputMode = mode;
+    document.getElementById('individual-padding').style.display = inputMode === 'individual' ? 'grid' : 'none';
+    document.getElementById('grouped-padding').style.display = inputMode === 'grouped' ? 'grid' : 'none';
+    document.getElementById('all-padding').style.display = inputMode === 'all' ? 'grid' : 'none';
+
+    document.getElementById('toggle-icon-individual').style.display = inputMode === 'individual' ? 'block' : 'none';
+    document.getElementById('toggle-icon-grouped').style.display = inputMode === 'grouped' ? 'block' : 'none';
+    document.getElementById('toggle-icon-all').style.display = inputMode === 'all' ? 'block' : 'none';
+
+    toggleBtn.classList.toggle('active', inputMode !== 'individual');
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    if (inputMode === 'individual') setInputMode('grouped');
+    else if (inputMode === 'grouped') setInputMode('all');
+    else setInputMode('individual');
+  });
+
+  // CMD+Click on input to switch to "All" mode
+  document.querySelectorAll('.input-wrapper').forEach(wrapper => {
+    wrapper.addEventListener('mousedown', (e) => {
+      if (e.metaKey || e.ctrlKey) {
+        e.preventDefault();
+        const input = wrapper.querySelector('input');
+        const val = input.value;
+        setInputMode('all');
+        if (val !== '' && !isNaN(val)) {
+          setAllPadding(val);
+        }
+      }
+    });
+  });
+
+  // Drag functionality and input validation
+  document.querySelectorAll('.value-input').forEach(input => {
+    // Basic validation to only allow numbers and minus sign
+    input.addEventListener('input', (e) => {
+      const val = e.target.value;
+      const cleaned = val.replace(/[^-0-9]/g, '');
+      // Only allow one minus sign at the beginning
+      const final = cleaned.startsWith('-') ? '-' + cleaned.slice(1).replace(/-/g, '') : cleaned.replace(/-/g, '');
+      if (val !== final) {
+        e.target.value = final;
+      }
+    });
+
+    let startY = 0, startValue = 0, isDragging = false;
+    const onMouseDown = (e) => {
+      startY = e.clientY;
+      startValue = parseInt(input.value) || 0;
+      isDragging = false;
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = 'ns-resize';
+    };
+    const onMouseMove = (e) => {
+      const deltaY = startY - e.clientY;
+      if (!isDragging && Math.abs(deltaY) > 5) { isDragging = true; input.blur(); }
+      if (isDragging) {
+        const step = e.shiftKey ? 10 : 1;
+        const change = Math.floor(deltaY / 5) * step;
+        const newVal = Math.max(-999, Math.min(999, startValue + change));
+        input.value = newVal;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    };
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      if (isDragging) input.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    input.addEventListener('mousedown', onMouseDown);
+  });
+
+  // Reset All
+  document.getElementById('reset-all').onclick = () => {
+    ['top', 'right', 'bottom', 'left'].forEach(side => {
+      syncValues(side, 0);
+      updatePadding(side, 0);
+    });
+    updateCenterInput();
+  };
+
+  // Message listener
+  window.addEventListener('message', (event) => {
+    const msg = event.data.pluginMessage;
+    if (msg.type === 'selection-changed') {
+      const hasWorkable = msg.hasWorkableFrame;
+      document.getElementById('no-selection').style.display = hasWorkable ? 'none' : 'flex';
+      document.getElementById('controls').style.display = hasWorkable ? 'flex' : 'none';
+
+      if (hasWorkable) {
+        document.getElementById('mode-selector').style.display = msg.supportsStretch ? 'flex' : 'none';
+        if (msg.padding) {
+          ['top', 'right', 'bottom', 'left'].forEach(side => syncValues(side, msg.padding[side] || 0));
+          updateCenterInput();
+        }
+      }
+    } else if (msg.type === 'update-values' && msg.padding) {
+      ['top', 'right', 'bottom', 'left'].forEach(side => syncValues(side, msg.padding[side] || 0));
+      updateCenterInput();
+    }
+  });
+
+  const allBottomInput = document.getElementById('padding-all-bottom-input');
+  allBottomInput.addEventListener('input', (e) => {
+    const val = e.target.value;
+    if (val === '-' || (val !== '' && !isNaN(val))) {
+      ['top', 'right', 'bottom', 'left'].forEach(side => syncValues(side, val));
+    }
+  });
+  allBottomInput.addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (val !== '' && !isNaN(val)) setAllPadding(val);
+  });
+
+  addKeyboardShortcuts();
+  parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
+</script>
